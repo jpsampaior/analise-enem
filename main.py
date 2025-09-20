@@ -13,8 +13,15 @@ def question1(df):
     
     # Calcular médias por faixa de renda
     estatisticas_descritivas = df.groupby('Q006')['NU_NOTA_CN'].describe()
-    st.bar_chart(estatisticas_descritivas['mean'], x_label="Faixa de Renda", y_label="Nota Média")    
-    st.dataframe(estatisticas_descritivas)
+    
+    # Criar abas para alternar entre gráfico e tabela
+    tab1, tab2 = st.tabs(["📊 Gráfico", "📋 Tabela Descritiva"])
+    
+    with tab1:
+        st.bar_chart(estatisticas_descritivas['mean'], x_label="Faixa de Renda", y_label="Nota Média")
+    
+    with tab2:
+        st.dataframe(estatisticas_descritivas)
     
     # Adicionar legenda explicativa em um expander
     with st.expander("📋 Ver Legenda das Faixas de Renda"):
@@ -65,8 +72,15 @@ def question3(df):
     
     # Calcular estatísticas descritivas por região
     estatisticas_descritivas = df.groupby('REGIAO')['MEDIA_GERAL'].describe()
-    st.bar_chart(estatisticas_descritivas['mean'], x_label="Região", y_label="Nota Média")    
-    st.dataframe(estatisticas_descritivas)
+    
+    # Criar abas para alternar entre gráfico e tabela
+    tab1, tab2 = st.tabs(["📊 Gráfico", "📋 Tabela Descritiva"])
+    
+    with tab1:
+        st.bar_chart(estatisticas_descritivas['mean'], x_label="Região", y_label="Nota Média")
+    
+    with tab2:
+        st.dataframe(estatisticas_descritivas)
     
     # Adicionar explicação em um expander
     with st.expander("📋 Ver Informações sobre as Regiões"):
