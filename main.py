@@ -12,13 +12,9 @@ def question1(df):
     st.subheader("Renda Familiar vs Notas de Ciências da Natureza")
     
     # Calcular médias por faixa de renda
-    medias = df.groupby('Q006')['NU_NOTA_CN'].mean().round(1)
-    
-    # Ordenar pelos códigos (A-Q)
-    medias = medias.sort_index()
-    
-    # Exibir gráfico com códigos no eixo X
-    st.bar_chart(medias, x_label="Faixa de Renda", y_label="Nota Média")
+    estatisticas_descritivas = df.groupby('Q006')['NU_NOTA_CN'].describe()
+    st.bar_chart(estatisticas_descritivas['mean'], x_label="Faixa de Renda", y_label="Nota Média")    
+    st.dataframe(estatisticas_descritivas)
     
     # Adicionar legenda explicativa em um expander
     with st.expander("📋 Ver Legenda das Faixas de Renda"):
@@ -44,7 +40,6 @@ def question1(df):
             st.caption("O: R$ 13.200 - 16.500")
             st.caption("P: R$ 16.500 - 22.000")
             st.caption("Q: Acima de R$ 22.000")
-    
 
 def main():
     # Carregar dados
