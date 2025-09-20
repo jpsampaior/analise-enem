@@ -41,13 +41,52 @@ def question1(df):
             st.caption("P: R$ 16.500 - 22.000")
             st.caption("Q: Acima de R$ 22.000")
 
+def question3(df):
+    st.subheader("Distribuição de Desempenho nas Provas Objetivas por Região Geográfica")
+    
+    # Criar coluna da região baseada no primeiro dígito do código do município
+    df = df.copy()
+    df['REGIAO_COD'] = df['CO_MUNICIPIO_PROVA'].astype(str).str[0]
+    
+    # Mapear códigos das regiões para nomes
+    mapeamento_regioes = {
+        '1': 'Norte',
+        '2': 'Nordeste', 
+        '3': 'Sudeste',
+        '4': 'Sul',
+        '5': 'Centro-Oeste'
+    }
+    
+    df['REGIAO'] = df['REGIAO_COD'].map(mapeamento_regioes)
+    
+    # Calcular média geral das provas objetivas por participante
+    colunas_notas = ['NU_NOTA_CN', 'NU_NOTA_CH', 'NU_NOTA_LC', 'NU_NOTA_MT']
+    df['MEDIA_GERAL'] = df[colunas_notas].mean(axis=1)
+    
+    # Calcular estatísticas descritivas por região
+    estatisticas_descritivas = df.groupby('REGIAO')['MEDIA_GERAL'].describe()
+    st.bar_chart(estatisticas_descritivas['mean'], x_label="Região", y_label="Nota Média")    
+    st.dataframe(estatisticas_descritivas)
+    
+    # Adicionar explicação em um expander
+    with st.expander("📋 Ver Informações sobre as Regiões"):
+        st.caption("**Norte (1):** Acre, Amapá, Amazonas, Pará, Rondônia, Roraima, Tocantins")
+        st.caption("**Nordeste (2):** Alagoas, Bahia, Ceará, Maranhão, Paraíba, Pernambuco, Piauí, Rio Grande do Norte, Sergipe")
+        st.caption("**Sudeste (3):** Espírito Santo, Minas Gerais, Rio de Janeiro, São Paulo")
+        st.caption("**Sul (4):** Paraná, Rio Grande do Sul, Santa Catarina")
+        st.caption("**Centro-Oeste (5):** Distrito Federal, Goiás, Mato Grosso, Mato Grosso do Sul")
+
 def main():
     # Carregar dados
     df = load_data()
     st.title("Análise dos Dados do ENEM")
+    st.dataframe(df.head(50))
 
     # Pergunta 1: Qual é a relação entre a renda familiar declarada pelos participantes e suas notas médias na prova de Ciências da Natureza?
     question1(df)
+    
+    # Pergunta 3: Qual é a distribuição de desempenho nas provas objetivas por regiões geográficas do Brasil?
+    question3(df)
     
 
 if __name__ == '__main__': 
