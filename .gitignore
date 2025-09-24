@@ -1,1 +1,5 @@
 *enem.csv
+.venv/
+__pycache__/
+.idea/
+.vscode/
