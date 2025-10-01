@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 from sklearn.ensemble import IsolationForest
-import numpy as np
 
 st.set_page_config(page_title="Análise ENEM", layout="centered")
 
@@ -25,19 +24,81 @@ def clean_data(df):
     return df_clean
 
 def question1(df):
-    st.subheader("Renda Familiar vs Notas de Ciências da Natureza")
+    st.subheader("Renda Familiar vs Notas das Provas Objetivas")
     
-    # Calcular médias por faixa de renda
-    estatisticas_descritivas = df.groupby('Q006')['NU_NOTA_CN'].describe()
+    # Definir as colunas das provas objetivas
+    colunas_provas = {
+        'NU_NOTA_CN': 'Ciências da Natureza',
+        'NU_NOTA_CH': 'Ciências Humanas', 
+        'NU_NOTA_LC': 'Linguagens e Códigos',
+        'NU_NOTA_MT': 'Matemática'
+    }
     
-    # Criar abas para alternar entre gráfico e tabela
-    tab1, tab2 = st.tabs(["📊 Gráfico", "📋 Tabela Descritiva"])
+    # Calcular estatísticas descritivas por faixa de renda para cada prova
+    estatisticas_por_prova = {}
+    for coluna, nome_prova in colunas_provas.items():
+        estatisticas_por_prova[nome_prova] = df.groupby('Q006')[coluna].describe()
+    
+    # Criar abas para cada tipo de visualização
+    tab1, tab2, tab3 = st.tabs(["📊 Gráficos", "📋 Tabelas Descritivas", "🔗 Análise de Correlação"])
     
     with tab1:
-        st.bar_chart(estatisticas_descritivas['mean'], x_label="Faixa de Renda", y_label="Nota Média")
+        # Criar gráficos para cada prova
+        for nome_prova, estatisticas in estatisticas_por_prova.items():
+            st.write(f"**{nome_prova}**")
+            st.bar_chart(estatisticas['mean'], x_label="Faixa de Renda", y_label="Nota Média")
+            st.write("---")
     
     with tab2:
-        st.dataframe(estatisticas_descritivas)
+        # Criar tabelas descritivas para cada prova
+        for nome_prova, estatisticas in estatisticas_por_prova.items():
+            st.write(f"**{nome_prova}**")
+            st.dataframe(estatisticas)
+            st.write("---")
+    
+    with tab3:      
+        # Converter faixas de renda para valores numéricos ordinais
+        mapeamento_renda = {
+            'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8, 'I': 9,
+            'J': 10, 'K': 11, 'L': 12, 'M': 13, 'N': 14, 'O': 15, 'P': 16, 'Q': 17
+        }
+        
+        df_corr = df.copy()
+        df_corr['RENDA_NUMERICA'] = df_corr['Q006'].map(mapeamento_renda)
+        
+        # Calcular correlações individuais
+        correlacoes = {}
+        for coluna, nome_prova in colunas_provas.items():
+            correlacao = df_corr['RENDA_NUMERICA'].corr(df_corr[coluna])
+            correlacoes[nome_prova] = correlacao
+        
+        # Mostrar correlações individuais
+        st.write("#### 📈 Correlação Individual de cada Prova com Renda Familiar:")
+        
+        # Criar DataFrame para visualização
+        df_correlacoes = pd.DataFrame(list(correlacoes.items()), columns=['Prova', 'Correlação'])
+        df_correlacoes = df_correlacoes.sort_values('Correlação', ascending=False)
+        
+        # Mostrar gráfico de barras das correlações
+        st.bar_chart(df_correlacoes.set_index('Prova')['Correlação'], 
+                    x_label="Prova", y_label="Coeficiente de Correlação")
+        
+        # Mostrar interpretação
+        prova_maior_correlacao = max(correlacoes, key=correlacoes.get)
+        valor_maior_correlacao = correlacoes[prova_maior_correlacao]
+        
+        st.success(f"🏆 **{prova_maior_correlacao}** tem a maior correlação com a renda familiar: **{valor_maior_correlacao:.4f}**")
+        
+        with st.expander("📊 Como interpretar os valores de correlação"):
+            st.write("""
+            - **0.7 a 1.0**: Correlação forte positiva
+            - **0.3 a 0.7**: Correlação moderada positiva  
+            - **0.1 a 0.3**: Correlação fraca positiva
+            - **-0.1 a 0.1**: Correlação muito fraca ou inexistente
+            - **-0.3 a -0.1**: Correlação fraca negativa
+            - **-0.7 a -0.3**: Correlação moderada negativa
+            - **-1.0 a -0.7**: Correlação forte negativa
+            """)
     
     # Adicionar legenda explicativa em um expander
     with st.expander("📋 Ver Legenda das Faixas de Renda"):
@@ -131,7 +192,7 @@ def main():
             percentual = outliers_removidos/len(df_original)*100
             st.metric("Outliers Removidos", f"{outliers_removidos:,}", f"{percentual:.1f}%")
 
-    # Pergunta 1: Qual é a relação entre a renda familiar declarada pelos participantes e suas notas médias na prova de Ciências da Natureza?
+    # Pergunta 1: Qual é a relação entre a renda familiar declarada pelos participantes e suas notas médias nas provas objetivas?
     question1(df)
     
     # Pergunta 3: Qual é a distribuição de desempenho nas provas objetivas por regiões geográficas do Brasil?
