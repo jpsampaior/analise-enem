@@ -35,17 +35,86 @@ def question1(df):
     estatisticas_nota_geral = df.groupby('Q006')['NOTA_GERAL'].describe()
     
     # Criar abas para cada tipo de visualização
-    tab1, tab2, tab3 = st.tabs(["📊 Gráficos", "📋 Tabelas Descritivas", "🔗 Análise de Correlação"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📖 Análise Interpretativa", "📊 Gráficos", "📋 Tabelas Descritivas", "🔗 Análise de Correlação"])
     
     with tab1:
+        st.write("### 🎓 O que os dados nos revelam sobre renda e desempenho no ENEM?")
+        
+        # Calcular algumas estatísticas para a análise
+        nota_mais_alta = estatisticas_nota_geral['mean'].max()
+        renda_mais_alta = estatisticas_nota_geral['mean'].idxmax()
+        nota_mais_baixa = estatisticas_nota_geral['mean'].min()
+        renda_mais_baixa = estatisticas_nota_geral['mean'].idxmin()
+        diferenca_notas = nota_mais_alta - nota_mais_baixa
+        
+        # Análise principal
+        st.write("#### 🔍 **Principais Descobertas:**")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.info(f"""
+            **🏆 Maior Desempenho:**
+            - Faixa de renda: **{renda_mais_alta}**
+            - Nota média: **{nota_mais_alta:.1f} pontos**
+            """)
+        
+        with col2:
+            st.warning(f"""
+            **📉 Menor Desempenho:**
+            - Faixa de renda: **{renda_mais_baixa}**
+            - Nota média: **{nota_mais_baixa:.1f} pontos**
+            """)
+        
+        st.write("#### 💡 **O que isso significa na prática?**")
+        
+        st.write(f"""
+        **Diferença de Desempenho:** Existe uma diferença de **{diferenca_notas:.1f} pontos** entre 
+        as faixas de renda mais alta e mais baixa. Isso representa aproximadamente 
+        **{(diferenca_notas/nota_mais_baixa)*100:.1f}%** de diferença no desempenho.
+        """)
+        
+        st.write("#### 🤔 **Possíveis Explicações:**")
+        
+        st.write("""
+        **Por que famílias com maior renda tendem a ter filhos com melhor desempenho?**
+        
+        🏠 **Ambiente de Estudo:** Famílias com maior renda geralmente podem oferecer:
+        - Espaço adequado para estudos
+        - Materiais didáticos de qualidade
+        - Acesso à internet e computadores
+        
+        📚 **Recursos Educacionais:** Maior poder aquisitivo permite:
+        - Cursos preparatórios
+        - Livros e materiais complementares
+        - Aulas particulares
+        
+        🎯 **Dedicação aos Estudos:** Situação financeira estável pode proporcionar:
+        - Menos necessidade de trabalhar durante os estudos
+        - Menor preocupação com questões financeiras básicas
+        - Mais tempo para se dedicar aos estudos
+        
+        🏫 **Qualidade da Educação Básica:** Famílias com maior renda frequentemente:
+        - Têm acesso a escolas particulares ou públicas de melhor qualidade
+        - Podem custear atividades extracurriculares
+        - Investem em educação complementar
+        """)
+        
+        st.warning("""
+        ⚠️ **Importante lembrar:** Estes dados mostram uma tendência geral, mas existem muitas 
+        exceções! Estudantes de todas as faixas de renda podem ter excelente desempenho 
+        com dedicação, boas estratégias de estudo e apoio adequado.
+        """)
+    
+    with tab2:
         st.write("**Nota Geral das Provas Objetivas por Faixa de Renda**")
         st.bar_chart(estatisticas_nota_geral['mean'], x_label="Faixa de Renda", y_label="Nota Média Geral")
     
-    with tab2:
+    with tab3:
         st.write("**Estatísticas Descritivas da Nota Geral por Faixa de Renda**")
         st.dataframe(estatisticas_nota_geral)
     
-    with tab3:      
+    with tab4:      
         # Converter faixas de renda para valores numéricos ordinais
         mapeamento_renda = {
             'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8, 'I': 9,
