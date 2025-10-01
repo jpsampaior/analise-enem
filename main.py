@@ -1,12 +1,28 @@
 import pandas as pd
 import streamlit as st
+from sklearn.ensemble import IsolationForest
+import numpy as np
 
-# Configurar página para ocupar toda a tela
 st.set_page_config(page_title="Análise ENEM", layout="centered")
 
 @st.cache_data(ttl=3600*20)
 def load_data():
     return pd.read_csv('data/enem.csv', encoding='latin-1', sep=';').dropna()
+
+# Limpa os dados removendo outliers usando IsolationForest e tratando valores nulos
+@st.cache_data(ttl=3600*20)
+def clean_data(df):
+    df_clean = df.copy()
+    
+    numeric_cols = ['NU_NOTA_CN', 'NU_NOTA_CH', 'NU_NOTA_LC', 'NU_NOTA_MT', 'NU_NOTA_REDACAO']
+    df_clean = df_clean.dropna(subset=numeric_cols)
+    df_clean = df_clean[(df_clean[numeric_cols] > 0).all(axis=1)]
+    
+    isolation_forest = IsolationForest(contamination=0.05, random_state=42)
+    outliers = isolation_forest.fit_predict(df_clean[numeric_cols])
+    df_clean = df_clean[outliers == 1]
+    
+    return df_clean
 
 def question1(df):
     st.subheader("Renda Familiar vs Notas de Ciências da Natureza")
@@ -92,9 +108,28 @@ def question3(df):
 
 def main():
     # Carregar dados
-    df = load_data()
+    df_original = load_data()
+    
+    # Aplicar limpeza de dados
+    df = clean_data(df_original)
+    
     st.title("Análise dos Dados do ENEM")
-    st.dataframe(df.head(50))
+    st.info("📈 Os dados foram automaticamente limpos removendo outliers e valores nulos usando IsolationForest do scikit-learn")
+    
+    # Mostrar estatísticas de debug em um expander colapsável
+    with st.expander("🔍 Ver Estatísticas de Processamento dos Dados"):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric("Dados Originais", f"{len(df_original):,}")
+        
+        with col2:
+            st.metric("Dados Limpos", f"{len(df):,}")
+        
+        with col3:
+            outliers_removidos = len(df_original) - len(df)
+            percentual = outliers_removidos/len(df_original)*100
+            st.metric("Outliers Removidos", f"{outliers_removidos:,}", f"{percentual:.1f}%")
 
     # Pergunta 1: Qual é a relação entre a renda familiar declarada pelos participantes e suas notas médias na prova de Ciências da Natureza?
     question1(df)
