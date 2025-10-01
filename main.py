@@ -203,8 +203,8 @@ def question3(df):
     # Calcular estatísticas descritivas por região
     estatisticas_descritivas = df.groupby('REGIAO')['MEDIA_GERAL'].describe()
     
-    # Criar abas para alternar entre análise, gráfico e tabela
-    tab1, tab2, tab3 = st.tabs(["📖 Análise Interpretativa", "📊 Gráfico", "📋 Tabela Descritiva"])
+    # Criar abas para alternar entre análise, gráfico, tabela e correlação
+    tab1, tab2, tab3, tab4 = st.tabs(["📖 Análise Interpretativa", "📊 Gráfico", "📋 Tabela Descritiva", "🔗 Análise de Correlação"])
     
     with tab1:
         st.write("### 🗺️ Como o desempenho no ENEM varia entre as regiões do Brasil?")
@@ -354,6 +354,95 @@ def question3(df):
     with tab3:
         st.dataframe(estatisticas_descritivas)
     
+    with tab4:
+        st.write("#### 🔗 Correlação entre Região e Desempenho:")
+        
+        # Converter regiões para valores numéricos ordinais (baseado no ranking de desempenho)
+        ranking_regioes = estatisticas_descritivas['mean'].sort_values(ascending=False)
+        mapeamento_regiao_numerica = {regiao: i+1 for i, regiao in enumerate(ranking_regioes.index)}
+        
+        df_corr = df.copy()
+        df_corr['REGIAO_NUMERICA'] = df_corr['REGIAO'].map(mapeamento_regiao_numerica)
+        
+        # Calcular correlação entre região (ordenada por desempenho) e nota geral
+        correlacao_regional = df_corr['REGIAO_NUMERICA'].corr(df_corr['MEDIA_GERAL'])
+        
+        # Como ordenamos do melhor para o pior (1=melhor), a correlação será negativa
+        # Vamos inverter o sinal para facilitar a interpretação
+        correlacao_regional_abs = abs(correlacao_regional)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.metric(
+                label="Coeficiente de Correlação",
+                value=f"{correlacao_regional_abs:.4f}",
+                help="Correlação entre posição regional no ranking e desempenho individual"
+            )
+        
+        with col2:
+            # Calcular variância explicada pela região (R²)
+            r_quadrado = correlacao_regional_abs ** 2
+            st.metric(
+                label="Variância Explicada (R²)",
+                value=f"{r_quadrado:.4f}",
+                help="Percentual da variação individual explicada pela região"
+            )
+        
+        # Interpretar o resultado
+        if correlacao_regional_abs > 0.7:
+            interpretacao = "🟢 **Correlação Forte**"
+            descricao = "A região geográfica tem uma influência forte no desempenho individual."
+        elif correlacao_regional_abs > 0.3:
+            interpretacao = "🟡 **Correlação Moderada**"
+            descricao = "A região geográfica tem uma influência moderada no desempenho individual."
+        elif correlacao_regional_abs > 0.1:
+            interpretacao = "🟠 **Correlação Fraca**"
+            descricao = "A região geográfica tem uma influência fraca no desempenho individual."
+        else:
+            interpretacao = "🔴 **Correlação Muito Fraca**"
+            descricao = "A região geográfica tem influência mínima no desempenho individual."
+        
+        st.success(f"{interpretacao}")
+        st.write(descricao)
+        
+        # Análise adicional por disciplina
+        st.write("#### 📚 **Correlação por Disciplina:**")
+        
+        disciplinas = {
+            'NU_NOTA_CN': 'Ciências da Natureza',
+            'NU_NOTA_CH': 'Ciências Humanas', 
+            'NU_NOTA_LC': 'Linguagens e Códigos',
+            'NU_NOTA_MT': 'Matemática'
+        }
+        
+        correlacoes_disciplinas = {}
+        for codigo, nome in disciplinas.items():
+            corr = abs(df_corr['REGIAO_NUMERICA'].corr(df_corr[codigo]))
+            correlacoes_disciplinas[nome] = corr
+        
+        # Mostrar correlações por disciplina
+        for disciplina, corr in correlacoes_disciplinas.items():
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.write(f"**{disciplina}:**")
+            with col2:
+                st.write(f"{corr:.4f}")
+        
+        # Encontrar disciplina com maior e menor correlação regional
+        disciplina_maior_corr = max(correlacoes_disciplinas, key=correlacoes_disciplinas.get)
+        disciplina_menor_corr = min(correlacoes_disciplinas, key=correlacoes_disciplinas.get)
+        
+        st.info(f"""
+        💡 **Insights por Disciplina:**
+        
+        - **Maior influência regional:** {disciplina_maior_corr} ({correlacoes_disciplinas[disciplina_maior_corr]:.4f})
+        - **Menor influência regional:** {disciplina_menor_corr} ({correlacoes_disciplinas[disciplina_menor_corr]:.4f})
+        
+        Isso pode indicar que algumas áreas do conhecimento são mais sensíveis às 
+        diferenças regionais de infraestrutura, recursos ou tradição educacional.
+        """)
+        
     # Adicionar explicação em um expander
     with st.expander("📋 Ver Informações sobre as Regiões"):
         st.caption("**Norte (1):** Acre, Amapá, Amazonas, Pará, Rondônia, Roraima, Tocantins")
