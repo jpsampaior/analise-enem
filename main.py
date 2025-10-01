@@ -24,37 +24,26 @@ def clean_data(df):
     return df_clean
 
 def question1(df):
-    st.subheader("Renda Familiar vs Notas das Provas Objetivas")
+    st.subheader("Renda Familiar vs Nota Geral das Provas Objetivas")
     
-    # Definir as colunas das provas objetivas
-    colunas_provas = {
-        'NU_NOTA_CN': 'Ciências da Natureza',
-        'NU_NOTA_CH': 'Ciências Humanas', 
-        'NU_NOTA_LC': 'Linguagens e Códigos',
-        'NU_NOTA_MT': 'Matemática'
-    }
+    # Calcular a nota geral (média das provas objetivas) para cada participante
+    colunas_provas = ['NU_NOTA_CN', 'NU_NOTA_CH', 'NU_NOTA_LC', 'NU_NOTA_MT']
+    df = df.copy()
+    df['NOTA_GERAL'] = df[colunas_provas].mean(axis=1)
     
-    # Calcular estatísticas descritivas por faixa de renda para cada prova
-    estatisticas_por_prova = {}
-    for coluna, nome_prova in colunas_provas.items():
-        estatisticas_por_prova[nome_prova] = df.groupby('Q006')[coluna].describe()
+    # Calcular estatísticas descritivas da nota geral por faixa de renda
+    estatisticas_nota_geral = df.groupby('Q006')['NOTA_GERAL'].describe()
     
     # Criar abas para cada tipo de visualização
     tab1, tab2, tab3 = st.tabs(["📊 Gráficos", "📋 Tabelas Descritivas", "🔗 Análise de Correlação"])
     
     with tab1:
-        # Criar gráficos para cada prova
-        for nome_prova, estatisticas in estatisticas_por_prova.items():
-            st.write(f"**{nome_prova}**")
-            st.bar_chart(estatisticas['mean'], x_label="Faixa de Renda", y_label="Nota Média")
-            st.write("---")
+        st.write("**Nota Geral das Provas Objetivas por Faixa de Renda**")
+        st.bar_chart(estatisticas_nota_geral['mean'], x_label="Faixa de Renda", y_label="Nota Média Geral")
     
     with tab2:
-        # Criar tabelas descritivas para cada prova
-        for nome_prova, estatisticas in estatisticas_por_prova.items():
-            st.write(f"**{nome_prova}**")
-            st.dataframe(estatisticas)
-            st.write("---")
+        st.write("**Estatísticas Descritivas da Nota Geral por Faixa de Renda**")
+        st.dataframe(estatisticas_nota_geral)
     
     with tab3:      
         # Converter faixas de renda para valores numéricos ordinais
@@ -66,40 +55,35 @@ def question1(df):
         df_corr = df.copy()
         df_corr['RENDA_NUMERICA'] = df_corr['Q006'].map(mapeamento_renda)
         
-        # Calcular correlações individuais
-        correlacoes = {}
-        for coluna, nome_prova in colunas_provas.items():
-            correlacao = df_corr['RENDA_NUMERICA'].corr(df_corr[coluna])
-            correlacoes[nome_prova] = correlacao
+        # Calcular correlação entre renda e nota geral
+        correlacao_geral = df_corr['RENDA_NUMERICA'].corr(df_corr['NOTA_GERAL'])
         
-        # Mostrar correlações individuais
-        st.write("#### 📈 Correlação Individual de cada Prova com Renda Familiar:")
+        # Mostrar correlação
+        st.write("#### 📈 Correlação entre Renda Familiar e Nota Geral:")
         
-        # Criar DataFrame para visualização
-        df_correlacoes = pd.DataFrame(list(correlacoes.items()), columns=['Prova', 'Correlação'])
-        df_correlacoes = df_correlacoes.sort_values('Correlação', ascending=False)
+        st.metric(
+            label="Coeficiente de Correlação",
+            value=f"{correlacao_geral:.4f}",
+            help="Valores próximos a 1 indicam correlação positiva forte"
+        )
         
-        # Mostrar gráfico de barras das correlações
-        st.bar_chart(df_correlacoes.set_index('Prova')['Correlação'], 
-                    x_label="Prova", y_label="Coeficiente de Correlação")
+        # Interpretar o resultado
+        if correlacao_geral > 0.7:
+            interpretacao = "🟢 **Correlação Forte Positiva**"
+            descricao = "Existe uma relação forte entre maior renda familiar e maiores notas."
+        elif correlacao_geral > 0.3:
+            interpretacao = "🟡 **Correlação Moderada Positiva**"
+            descricao = "Existe uma relação moderada entre maior renda familiar e maiores notas."
+        elif correlacao_geral > 0.1:
+            interpretacao = "🟠 **Correlação Fraca Positiva**"
+            descricao = "Existe uma relação fraca entre maior renda familiar e maiores notas."
+        else:
+            interpretacao = "🔴 **Correlação Muito Fraca ou Inexistente**"
+            descricao = "Não há uma relação significativa entre renda familiar e notas."
         
-        # Mostrar interpretação
-        prova_maior_correlacao = max(correlacoes, key=correlacoes.get)
-        valor_maior_correlacao = correlacoes[prova_maior_correlacao]
+        st.success(f"{interpretacao}")
+        st.write(descricao)
         
-        st.success(f"🏆 **{prova_maior_correlacao}** tem a maior correlação com a renda familiar: **{valor_maior_correlacao:.4f}**")
-        
-        with st.expander("📊 Como interpretar os valores de correlação"):
-            st.write("""
-            - **0.7 a 1.0**: Correlação forte positiva
-            - **0.3 a 0.7**: Correlação moderada positiva  
-            - **0.1 a 0.3**: Correlação fraca positiva
-            - **-0.1 a 0.1**: Correlação muito fraca ou inexistente
-            - **-0.3 a -0.1**: Correlação fraca negativa
-            - **-0.7 a -0.3**: Correlação moderada negativa
-            - **-1.0 a -0.7**: Correlação forte negativa
-            """)
-    
     # Adicionar legenda explicativa em um expander
     with st.expander("📋 Ver Legenda das Faixas de Renda"):
         col1, col2 = st.columns(2)
