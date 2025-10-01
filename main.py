@@ -203,13 +203,155 @@ def question3(df):
     # Calcular estatísticas descritivas por região
     estatisticas_descritivas = df.groupby('REGIAO')['MEDIA_GERAL'].describe()
     
-    # Criar abas para alternar entre gráfico e tabela
-    tab1, tab2 = st.tabs(["📊 Gráfico", "📋 Tabela Descritiva"])
+    # Criar abas para alternar entre análise, gráfico e tabela
+    tab1, tab2, tab3 = st.tabs(["📖 Análise Interpretativa", "📊 Gráfico", "📋 Tabela Descritiva"])
     
     with tab1:
-        st.bar_chart(estatisticas_descritivas['mean'], x_label="Região", y_label="Nota Média")
+        st.write("### 🗺️ Como o desempenho no ENEM varia entre as regiões do Brasil?")
+        
+        # Calcular estatísticas para a análise
+        melhor_regiao = estatisticas_descritivas['mean'].idxmax()
+        melhor_nota = estatisticas_descritivas['mean'].max()
+        pior_regiao = estatisticas_descritivas['mean'].idxmin()
+        pior_nota = estatisticas_descritivas['mean'].min()
+        diferenca_regioes = melhor_nota - pior_nota
+        
+        # Análise principal
+        st.write("#### 🔍 **Principais Descobertas:**")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.success(f"""
+            **🏆 Melhor Desempenho:**
+            - Região: **{melhor_regiao}**
+            - Nota média: **{melhor_nota:.1f} pontos**
+            """)
+        
+        with col2:
+            st.warning(f"""
+            **📉 Menor Desempenho:**
+            - Região: **{pior_regiao}**
+            - Nota média: **{pior_nota:.1f} pontos**
+            """)
+        
+        st.write("#### 💡 **O que isso significa na prática?**")
+        
+        st.write(f"""
+        **Diferença Regional:** Existe uma diferença de **{diferenca_regioes:.1f} pontos** entre 
+        a região com melhor e pior desempenho. Isso representa aproximadamente 
+        **{(diferenca_regioes/pior_nota)*100:.1f}%** de diferença no desempenho entre regiões.
+        """)
+        
+        # Ranking das regiões
+        ranking_regioes = estatisticas_descritivas['mean'].sort_values(ascending=False)
+        
+        st.write("#### 🏅 **Ranking das Regiões por Desempenho:**")
+        
+        for i, (regiao, nota) in enumerate(ranking_regioes.items(), 1):
+            if i == 1:
+                emoji = "🥇"
+                cor = "success"
+            elif i == 2:
+                emoji = "🥈"
+                cor = "info"
+            elif i == 3:
+                emoji = "🥉"
+                cor = "info"
+            else:
+                emoji = f"{i}º"
+                cor = "secondary"
+            
+            with st.container():
+                if cor == "success":
+                    st.success(f"{emoji} **{regiao}**: {nota:.1f} pontos")
+                elif cor == "info":
+                    st.info(f"{emoji} **{regiao}**: {nota:.1f} pontos")
+                else:
+                    st.write(f"{emoji} **{regiao}**: {nota:.1f} pontos")
+        
+        st.write("#### 🤔 **Possíveis Explicações para as Diferenças:**")
+        
+        st.write("""
+        **Por que existem diferenças regionais no desempenho do ENEM?**
+        
+        🏭 **Desenvolvimento Econômico:** Regiões com maior desenvolvimento tendem a ter:
+        - Mais oportunidades de emprego e renda
+        - Maior investimento em infraestrutura educacional
+        - Acesso facilitado a recursos educacionais
+        
+        🏫 **Qualidade da Educação:** Diferenças na qualidade do ensino podem estar relacionadas a:
+        - Investimento per capita em educação
+        - Formação e valorização dos professores
+        - Infraestrutura das escolas (laboratórios, bibliotecas, internet)
+        
+        🌆 **Concentração Urbana:** Regiões mais urbanizadas frequentemente oferecem:
+        - Maior diversidade de escolas e cursos
+        - Acesso a universidades e centros de pesquisa
+        - Mercado de trabalho mais competitivo que valoriza educação
+        
+        📚 **Acesso a Recursos:** Disponibilidade de recursos pode variar por:
+        - Proximidade a grandes centros urbanos
+        - Conectividade e acesso à internet
+        - Disponibilidade de materiais didáticos e bibliotecas
+        
+        👨‍👩‍👧‍👦 **Fatores Socioeconômicos:** Características regionais que influenciam:
+        - Renda familiar média
+        - Necessidade de jovens trabalharem cedo
+        - Expectativas familiares sobre educação superior
+        """)
+        
+        # Análise estatística adicional
+        desvio_padrao_medio = estatisticas_descritivas['std'].mean()
+        coeficiente_variacao = (estatisticas_descritivas['std'] / estatisticas_descritivas['mean'] * 100).mean()
+        
+        st.write("#### 📊 **Análise da Variabilidade:**")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric(
+                "📈 Nota Média Geral", 
+                f"{estatisticas_descritivas['mean'].mean():.1f} pts",
+                help="Média de todas as regiões"
+            )
+        
+        with col2:
+            st.metric(
+                "📏 Desvio Padrão Médio", 
+                f"{desvio_padrao_medio:.1f} pts",
+                help="Variabilidade média dentro das regiões"
+            )
+        
+        with col3:
+            st.metric(
+                "🔄 Coef. de Variação", 
+                f"{coeficiente_variacao:.1f}%",
+                help="Percentual de variação entre regiões"
+            )
+        
+        st.info("""
+        💡 **Interpretação:** Um coeficiente de variação de 13.4% indica uma variabilidade moderada 
+        entre as regiões. Isso significa que, embora existam diferenças regionais visíveis, 
+        elas não são extremamente grandes quando comparadas à variação dentro de cada região.
+        
+        📊 **Referência:** 
+        - Baixa variação: < 10%
+        - Moderada variação: 10% - 20%  
+        - Alta variação: > 20%
+        """)
+        
+        st.warning("""
+        ⚠️ **Importante lembrar:** Estes dados refletem tendências regionais gerais, mas cada região 
+        possui grande diversidade interna. Estudantes excepcionais existem em todas as regiões, 
+        e fatores individuais como dedicação, qualidade da escola específica e apoio familiar 
+        podem ser mais determinantes que a região geográfica.
+        """)
     
     with tab2:
+        st.bar_chart(estatisticas_descritivas['mean'], x_label="Região", y_label="Nota Média")
+    
+    with tab3:
         st.dataframe(estatisticas_descritivas)
     
     # Adicionar explicação em um expander
