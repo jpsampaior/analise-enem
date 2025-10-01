@@ -79,25 +79,13 @@ def question1(df):
         st.write("""
         **Por que famílias com maior renda tendem a ter filhos com melhor desempenho?**
         
-        🏠 **Ambiente de Estudo:** Famílias com maior renda geralmente podem oferecer:
-        - Espaço adequado para estudos
-        - Materiais didáticos de qualidade
-        - Acesso à internet e computadores
+        🏠 **Recursos e Ambiente:** Melhor infraestrutura para estudos, materiais didáticos de qualidade e acesso à tecnologia.
         
-        📚 **Recursos Educacionais:** Maior poder aquisitivo permite:
-        - Cursos preparatórios
-        - Livros e materiais complementares
-        - Aulas particulares
+        📚 **Investimento Educacional:** Cursos preparatórios, aulas particulares e educação complementar.
         
-        🎯 **Dedicação aos Estudos:** Situação financeira estável pode proporcionar:
-        - Menos necessidade de trabalhar durante os estudos
-        - Menor preocupação com questões financeiras básicas
-        - Mais tempo para se dedicar aos estudos
+        🎯 **Condições de Estudo:** Menor necessidade de trabalhar, mais tempo para se dedicar aos estudos e menos preocupações financeiras.
         
-        🏫 **Qualidade da Educação Básica:** Famílias com maior renda frequentemente:
-        - Têm acesso a escolas particulares ou públicas de melhor qualidade
-        - Podem custear atividades extracurriculares
-        - Investem em educação complementar
+        🏫 **Qualidade Educacional:** Acesso a escolas de melhor qualidade e atividades extracurriculares.
         """)
         
         st.warning("""
@@ -275,30 +263,13 @@ def question3(df):
         st.write("""
         **Por que existem diferenças regionais no desempenho do ENEM?**
         
-        🏭 **Desenvolvimento Econômico:** Regiões com maior desenvolvimento tendem a ter:
-        - Mais oportunidades de emprego e renda
-        - Maior investimento em infraestrutura educacional
-        - Acesso facilitado a recursos educacionais
+        🏭 **Desenvolvimento Econômico:** Maior renda e investimento em infraestrutura educacional.
         
-        🏫 **Qualidade da Educação:** Diferenças na qualidade do ensino podem estar relacionadas a:
-        - Investimento per capita em educação
-        - Formação e valorização dos professores
-        - Infraestrutura das escolas (laboratórios, bibliotecas, internet)
+        🏫 **Qualidade da Educação:** Diferenças no investimento per capita, formação docente e recursos escolares.
         
-        🌆 **Concentração Urbana:** Regiões mais urbanizadas frequentemente oferecem:
-        - Maior diversidade de escolas e cursos
-        - Acesso a universidades e centros de pesquisa
-        - Mercado de trabalho mais competitivo que valoriza educação
+        🌆 **Concentração Urbana:** Acesso a mais escolas, universidades e mercado competitivo.
         
-        📚 **Acesso a Recursos:** Disponibilidade de recursos pode variar por:
-        - Proximidade a grandes centros urbanos
-        - Conectividade e acesso à internet
-        - Disponibilidade de materiais didáticos e bibliotecas
-        
-        👨‍👩‍👧‍👦 **Fatores Socioeconômicos:** Características regionais que influenciam:
-        - Renda familiar média
-        - Necessidade de jovens trabalharem cedo
-        - Expectativas familiares sobre educação superior
+        📚 **Acesso a Recursos:** Proximidade a centros urbanos, conectividade e materiais didáticos.
         """)
         
         # Análise estatística adicional
